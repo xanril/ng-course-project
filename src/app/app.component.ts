@@ -6,5 +6,10 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+  menuSelected = 'recipe';
   title = 'udemy-course-project';
+
+  onMenuSelected(feature: string) {
+    this.menuSelected = feature;
+  }
 }
