@@ -10,6 +10,7 @@ export class RecipeService {
 
     private recipes: Recipe[] = [
         new Recipe(
+            0,
             'Tasty Schnitzel',
             'A super-tasty Schnitzel - just awesome!',
             'https://upload.wikimedia.org/wikipedia/commons/7/72/Schnitzel.JPG',
@@ -19,6 +20,7 @@ export class RecipeService {
             ]
         ),
         new Recipe(
+            1,
             'Big Fat Burger',
             'What else you need to say?',
             'https://upload.wikimedia.org/wikipedia/commons/b/be/Burger_King_Angus_Bacon_%26_Cheese_Steak_Burger.jpg',
@@ -30,6 +32,10 @@ export class RecipeService {
     ];
 
     constructor(private shoppingListService:ShoppingListService) { }
+
+    getRecipe(id: number) {
+        return this.recipes[id];
+    }
 
     getRecipes() {
         return this.recipes.slice();
