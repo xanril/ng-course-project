@@ -11,13 +11,16 @@ import { RecipeService } from '../recipe.service';
 export class RecipeDetailComponent implements OnInit {
 
   recipe!: Recipe
+  recipeIndex: number = 0;
 
   constructor(private recipeService: RecipeService,
-    private activatedRoute: ActivatedRoute) { }
+    private activatedRoute: ActivatedRoute,
+    private router:Router) { }
 
   ngOnInit(): void {
     this.activatedRoute.params.subscribe(
       (params: Params) => {
+        this.recipeIndex = +params['id'];
         this.recipe = this.recipeService.getRecipe(params['id']);
       }
     );
@@ -25,5 +28,10 @@ export class RecipeDetailComponent implements OnInit {
 
   onAddToShoppingList() {
     this.recipeService.addIngredientsToShoppingList(this.recipe.ingredients);
+  }
+
+  onDeleteRecipe() {
+    this.recipeService.deleteRecipe(this.recipeIndex);
+    this.router.navigate(['../'], {relativeTo: this.activatedRoute});
   }
 }
