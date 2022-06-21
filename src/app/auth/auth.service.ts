@@ -95,7 +95,7 @@ export class AuthService {
                 break;
         }
 
-        return throwError(() => { new Error(errorMessage) });
+        return throwError(() => { return new Error(errorMessage) });
     }
 
     logout() {

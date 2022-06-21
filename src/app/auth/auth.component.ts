@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { Observable } from 'rxjs/internal/Observable';
 import { Observer } from 'rxjs/internal/types';
+import { AlertComponent } from '../shared/alert/alert.component';
+import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
 import { AuthResponse, AuthService } from './auth.service';
 
 @Component({
@@ -10,17 +13,25 @@ import { AuthResponse, AuthService } from './auth.service';
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css']
 })
-export class AuthComponent implements OnInit {
+export class AuthComponent implements OnInit, OnDestroy {
 
   isLoginMode: boolean = false;
   isLoading: boolean = false;
   errorMessage: string = '';
+  closeSubscription!: Subscription;
+  @ViewChild(PlaceholderDirective, {static: false}) alertHost!: PlaceholderDirective;
 
   constructor(
     private auth:AuthService,
     private router: Router) { }
 
   ngOnInit(): void {
+  }
+
+  ngOnDestroy(): void {
+    if(this.closeSubscription) {
+      this.closeSubscription.unsubscribe();
+    }
   }
   
   onSwitchMode() {
@@ -62,8 +73,21 @@ export class AuthComponent implements OnInit {
       },
       error: error => {
         this.errorMessage = error;
+        this.showErrorAlert(error);
         this.isLoading = false;
       }
     };
+  }
+
+  showErrorAlert(message: string) {
+    const hostContainer = this.alertHost.viewContainerRef;
+    hostContainer.clear();
+
+    let componentRef = hostContainer.createComponent(AlertComponent);
+    componentRef.instance.message = message;
+    this.closeSubscription = componentRef.instance.close.subscribe(() => {
+      hostContainer.clear();
+      this.closeSubscription.unsubscribe();
+    });
   }
 }
