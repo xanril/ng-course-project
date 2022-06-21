@@ -3,13 +3,14 @@ import { HttpClient } from "@angular/common/http";
 import { RecipeService } from "../recipes/recipe.service";
 import { Recipe } from "../recipes/recipe.model";
 import { map, tap } from "rxjs/operators";
+import { AuthService } from "../auth/auth.service";
 
 @Injectable({ providedIn: "root" })
 export class DataStorageService {
 
     constructor(
         private http: HttpClient,
-        private recipeService:RecipeService ) {}
+        private recipeService: RecipeService) {}
 
     storeRecipes() {
         const recipes = this.recipeService.getRecipes();
@@ -21,8 +22,7 @@ export class DataStorageService {
     }
 
     fetchRecipes() {
-        return this.http
-            .get<Recipe[]>("https://ng-udemy-c75e1-default-rtdb.asia-southeast1.firebasedatabase.app/recipes.json")
+        return this.http.get<Recipe[]>("https://ng-udemy-c75e1-default-rtdb.asia-southeast1.firebasedatabase.app/recipes.json",)
             .pipe(
                 map((recipes: Recipe[]) => {
                     return recipes.map(recipe => {
@@ -33,6 +33,7 @@ export class DataStorageService {
                     });
                 }),
                 tap(recipes => {
+                    // console.log(recipes);
                     this.recipeService.setRecipes(recipes);
                 })
             );
