@@ -25,12 +25,14 @@ export class DataStorageService {
         return this.http.get<Recipe[]>("https://ng-udemy-c75e1-default-rtdb.asia-southeast1.firebasedatabase.app/recipes.json",)
             .pipe(
                 map((recipes: Recipe[]) => {
-                    return recipes.map(recipe => {
+                    const mappedRecipes = recipes.map(recipe => {
                         return {
                             ...recipe,
                             ingredients: recipe.ingredients ? recipe.ingredients : []
                         };
                     });
+
+                    return mappedRecipes;
                 }),
                 tap(recipes => {
                     // console.log(recipes);
