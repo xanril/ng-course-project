@@ -5,5 +5,9 @@ export const ADD_INGREDIENT: string = 'ADD_INGREDIENT';
 
 export class AddIngredient implements Action {
     readonly type = ADD_INGREDIENT;
-    payload?: Ingredient;
+    payload?:Ingredient;
+
+    constructor(payload?: Ingredient) {
+        this.payload = payload;
+    }
 }
