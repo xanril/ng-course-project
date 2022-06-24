@@ -8,21 +8,28 @@ const initialState = {
     ]
 }
 
-export function shoppingListReducer(state = initialState, action: ShoppingListActions.AddIngredient) {
+export function shoppingListReducer(
+    state = initialState,
+    action: ShoppingListActions.ShoppingListActions) : { ingredients: Ingredient[] } {
     switch(action.type) {
         case ShoppingListActions.ADD_INGREDIENT:
-
-            if (!action.payload) {
-                return state;
-            }
-
             return {
                 ...state,
                 ingredients: [
                     ...state.ingredients,
-                    action.payload
+                    action.payload as Ingredient
                 ]
             };
+
+        case ShoppingListActions.ADD_INGREDIENTS:
+            return {
+                ...state,
+                ingredients: [
+                    ...state.ingredients,
+                    ...action.payload as Ingredient[]
+                ]
+            };
+
         default:
             return state;
     }
