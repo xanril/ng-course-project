@@ -30,15 +30,14 @@ export class UpdateIngredient implements Action {
     readonly type = UPDATE_INGREDIENT;
     payload?:Ingredient;
 
-    constructor(public index: number,
-        public newIngredient: Ingredient) {}
+    constructor(payload?: Ingredient) {
+        this.payload = payload
+    }
 }
 
 export class DeleteIngredient implements Action {
     readonly type = DELETE_INGREDIENT;
     payload?:Ingredient;
-
-    constructor(public index: number) { }
 }
 
 export class StartEdit implements Action {
