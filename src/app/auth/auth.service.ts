@@ -1,9 +1,12 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
+import { Store } from "@ngrx/store";
 import { BehaviorSubject, throwError } from "rxjs";
 import { catchError, tap } from "rxjs/operators";
 import { User } from "./user.model";
+import { AppState } from "../store/app.reducer";
+import * as AuthActions from "./store/auth.actions";
 
 export interface AuthResponse {
     idToken: string;
@@ -17,12 +20,13 @@ export interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-    userSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
+    //userSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
     autoLogoutExpirationTimer: any;
 
     constructor(
         private http: HttpClient,
-        private router: Router) {}
+        private router: Router,
+        private store: Store<AppState>) {}
 
     signup(email: string, password: string) {
         return this.http.post<AuthResponse>(
@@ -66,7 +70,12 @@ export class AuthService {
     handleAuthentication(email: string, userId: string, token: string, expiresIn: number) {
         const expirationDate = new Date(new Date().getTime() + expiresIn * 1000);
         const user = new User(email, userId, token, expirationDate);
-        this.userSubject.next(user);
+        this.store.dispatch(new AuthActions.Login({
+            email,
+            userId,
+            token,
+            expirationDate
+        }));
 
         this.autoLogout(expiresIn * 1000);
 
@@ -99,7 +108,7 @@ export class AuthService {
     }
 
     logout() {
-        this.userSubject.next(null);
+        this.store.dispatch(new AuthActions.Logout());
         this.router.navigate(['/auth']);
         localStorage.removeItem('userData');
 
@@ -128,7 +137,12 @@ export class AuthService {
         );
 
         if (loadedUser.token) {
-            this.userSubject.next(loadedUser);
+            this.store.dispatch(new AuthActions.Login({
+                email: loadedUser.email,
+                userId: loadedUser.id,
+                token: loadedUser.token,
+                expirationDate: new Date(userData._tokenExpirationDate)
+            }));
 
             const expirationDuration = new Date(userData._tokenExpirationDate).getTime() - new Date().getTime();
             this.autoLogout(expirationDuration);
