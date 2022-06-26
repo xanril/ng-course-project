@@ -1,0 +1,115 @@
+import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { Router } from "@angular/router";
+import { Actions, createEffect, ofType } from "@ngrx/effects";
+import { catchError, map, of, switchMap, tap } from "rxjs";
+import * as AuthActions from "./auth.actions";
+
+export interface AuthResponse {
+    idToken: string;
+    email: string;
+    refreshToken: string;
+    expiresIn: string;
+    localId: string;
+    registered?: boolean;
+}
+
+@Injectable()
+export class AuthEffects {
+
+    constructor(private actions$: Actions,
+        private http: HttpClient,
+        private router: Router) { }
+
+    handleAuthentication = (email: string, userId: string, token: string, expiresIn: string) => {
+        const expirationDate = new Date(new Date().getTime() + +expiresIn * 1000);
+
+        return new AuthActions.AuthenticateSuccess({
+            email: email,
+            userId: userId,
+            token: token,
+            expirationDate: expirationDate
+        });
+    }
+
+    handleError = (errorRes:any) => {
+        let errorMessage = 'An unknown error occurred!';
+        const errorType = errorRes.error.error.message;
+
+        switch(errorType) {
+            case 'EMAIL_EXISTS':
+                errorMessage = 'This email exists already.';
+                break;
+            case 'OPERATION_NOT_ALLOWED':
+                errorMessage = 'Operation not allowed.';
+                break;
+            case 'TOO_MANY_ATTEMPTS_TRY_LATER':
+                errorMessage = 'Too many attempts. Try again later.';
+                break;
+            case 'EMAIL_NOT_FOUND':
+                errorMessage = 'This email does not exist.';
+                break;
+            case 'INVALID_PASSWORD':
+                errorMessage = 'This password is not correct.';
+                break;
+        }
+
+        return of(new AuthActions.AuthenticateFail(errorMessage));
+    }
+   
+    authLogin$ = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(AuthActions.LOGIN_START),
+            switchMap((authData: AuthActions.LoginStart) => {
+                return this.http.post<AuthResponse>(
+                    'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDCdpVqlZMumdjHrPB6HSBWBBU5Fb8u4ao',
+                    {
+                        email: authData.payload?.email,
+                        password: authData.payload?.password,
+                        returnSecureToken: true
+                    }).pipe(
+                        map(resData => {
+                            return this.handleAuthentication(resData.email, resData.localId, resData.idToken, resData.expiresIn);
+                        }),
+                        catchError(errorRes => {
+                            return this.handleError(errorRes);
+                        })
+                    );
+            })
+        );
+    });
+
+    authSignup$ = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(AuthActions.SIGNUP_START),
+            switchMap((authData: AuthActions.SignupStart) => {
+                return this.http.post<AuthResponse>(
+                    'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDCdpVqlZMumdjHrPB6HSBWBBU5Fb8u4ao',
+                    {
+                        email: authData.payload?.email,
+                        password: authData.payload?.password,
+                        returnSecureToken: true
+                    }).pipe(
+                        map(resData => {
+                            return this.handleAuthentication(resData.email, resData.localId, resData.idToken, resData.expiresIn);
+                        }),
+                        catchError(errorRes => {
+                            return this.handleError(errorRes);
+                        })
+                    );
+            })
+        );
+    });
+
+    authRedirect$ = createEffect(() => {
+        return this.actions$.pipe(
+            ofType(AuthActions.AUTHENTICATE_SUCCESS, AuthActions.LOGOUT),
+            tap(() => {
+                this.router.navigate(['/']);
+            })
+        );
+    }, 
+    { 
+        dispatch: false 
+    });
+}

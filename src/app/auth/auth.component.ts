@@ -1,12 +1,14 @@
 import { Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
-import { Observable } from 'rxjs/internal/Observable';
 import { Observer } from 'rxjs/internal/types';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
 import { AuthResponse, AuthService } from './auth.service';
+import * as fromApp from './../store/app.reducer'
+import * as AuthActions from './store/auth.actions'
 
 @Component({
   selector: 'app-auth',
@@ -19,16 +21,27 @@ export class AuthComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   errorMessage: string = '';
   closeSubscription!: Subscription;
+  storeSubscription!: Subscription;
   @ViewChild(PlaceholderDirective, {static: false}) alertHost!: PlaceholderDirective;
 
   constructor(
-    private auth:AuthService,
-    private router: Router) { }
+    private router: Router,
+    private store: Store<fromApp.AppState>) { }
 
   ngOnInit(): void {
+    this.storeSubscription = this.store.select('auth').subscribe(authState => {
+      this.isLoading = authState.loading;
+      this.errorMessage = authState.authError ?? '';
+
+      if(this.errorMessage !== '') {
+        this.showErrorAlert(this.errorMessage);
+      }
+    })
   }
 
   ngOnDestroy(): void {
+    this.storeSubscription.unsubscribe();
+
     if(this.closeSubscription) {
       this.closeSubscription.unsubscribe();
     }
@@ -50,16 +63,18 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    let authObservable: Observable<AuthResponse>;
-
     if(this.isLoginMode) {
-      authObservable = this.auth.login(email, password);
+      this.store.dispatch(new AuthActions.LoginStart({
+        email: email,
+        password: password
+      }));
     }
     else {
-      authObservable = this.auth.signup(email, password);
+      this.store.dispatch(new AuthActions.SignupStart({
+        email: email,
+        password: password
+      }));
     }
-
-    authObservable.subscribe(this.handleSubscription());
 
     authForm.reset();
   }

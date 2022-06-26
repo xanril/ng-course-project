@@ -10,6 +10,8 @@ import { SharedModule } from './shared/shared.module';
 import { CoreModule } from './core.module';
 import { StoreModule } from '@ngrx/store';
 import { appReducer } from './store/app.reducer';
+import { EffectsModule } from '@ngrx/effects';
+import { AuthEffects } from './auth/store/auth.effects';
 
 @NgModule({
   declarations: [
@@ -23,6 +25,7 @@ import { appReducer } from './store/app.reducer';
     ReactiveFormsModule,
     HttpClientModule,
     StoreModule.forRoot(appReducer),
+    EffectsModule.forRoot([AuthEffects]),
     SharedModule, 
     CoreModule
   ],
