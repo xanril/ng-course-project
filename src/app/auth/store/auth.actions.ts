@@ -11,11 +11,12 @@ export const AUTO_LOGIN: string = 'AUTO_LOGIN';
 export class AuthenticateSuccess implements Action {
     readonly type = AUTHENTICATE_SUCCESS;
 
-    constructor(public payload: {
+    constructor(public payload?: {
         email: string,
         userId: string,
         token: string,
-        expirationDate: Date
+        expirationDate: Date,
+        redirect: boolean
     }) { }
 } 
 

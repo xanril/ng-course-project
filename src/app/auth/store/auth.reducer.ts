@@ -18,10 +18,10 @@ export function authReducer(state: State = initialState, action:AuthActions.Auth
         case AuthActions.AUTHENTICATE_SUCCESS:
             const loginAction = action as AuthActions.AuthenticateSuccess;
             const newUser: User = new User(
-                loginAction.payload.email,
-                loginAction.payload.userId,
-                loginAction.payload.token,
-                loginAction.payload.expirationDate
+                loginAction.payload!.email,
+                loginAction.payload!.userId,
+                loginAction.payload!.token,
+                loginAction.payload!.expirationDate
             );
             
             return {
